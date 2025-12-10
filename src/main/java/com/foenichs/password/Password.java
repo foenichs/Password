@@ -17,6 +17,8 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.object.ObjectContents;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -35,11 +37,15 @@ public final class Password extends JavaPlugin implements Listener {
     private final Map<UUID, CompletableFuture<Boolean>> awaiting = new ConcurrentHashMap<>();
     private static final Key CLICK_KEY = Key.key("password:check");
     private String serverPassword;
+    private boolean operatorBypass;
+    private boolean whitelistBypass;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        serverPassword = getConfig().getString("password");
+        serverPassword = getConfig().getString("password", "");
+        operatorBypass = getConfig().getBoolean("operator_bypass", true);
+        whitelistBypass = getConfig().getBoolean("whitelist_bypass", true);
         getServer().getPluginManager().registerEvents(this, this);
     }
 
@@ -50,6 +56,18 @@ public final class Password extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerConfigure(AsyncPlayerConnectionConfigureEvent event) {
+        PlayerConfigurationConnection connection = event.getConnection();
+        UUID uuid = connection.getProfile().getId();
+        if (uuid == null) return;
+
+        OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
+        if (whitelistBypass && offline.isWhitelisted()) {
+            return;
+        }
+        if (operatorBypass && offline.isOp()) {
+            return;
+        }
+
         Dialog dialog = Dialog.create(builder -> builder.empty()
                 .base(
                         DialogBase.builder(
@@ -86,10 +104,6 @@ public final class Password extends JavaPlugin implements Listener {
                         )).build()
                 )
         );
-
-        PlayerConfigurationConnection connection = event.getConnection();
-        UUID uuid = connection.getProfile().getId();
-        if (uuid == null) return;
 
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         future.completeOnTimeout(false, 1, TimeUnit.MINUTES);

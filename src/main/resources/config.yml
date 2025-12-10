@@ -1,1 +1,6 @@
 password: changeme
+
+# Weather operators have to enter the password when joining.
+operator_bypass: true
+# Weather whitelisted players have to enter the password when joining.
+whitelist_bypass: false

@@ -1,5 +1,5 @@
 name: Password
-version: '1.1'
+version: '1.2'
 main: com.foenichs.password.Password
 api-version: '1.21'
 prefix: Password
