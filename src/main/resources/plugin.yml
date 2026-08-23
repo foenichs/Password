@@ -1,8 +1,8 @@
 name: Password
-version: '1.2'
+version: '1.3'
 main: com.foenichs.password.Password
 api-version: '1.21'
 prefix: Password
-authors: [ Phoenix3000 ]
+authors: [ foenichs ]
 description: Protect your server with a password.
 website: foenichs.com

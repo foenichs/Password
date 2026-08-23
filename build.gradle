@@ -1,10 +1,11 @@
 plugins {
     id 'java'
     id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 group = 'com.foenichs'
-version = '1.2'
+version = '1.3'
 
 repositories {
     mavenCentral()
@@ -16,6 +17,7 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    implementation("org.bstats:bstats-bukkit:3.2.1")
 }
 
 tasks {
@@ -24,6 +26,13 @@ tasks {
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion("1.21.11")
+    }
+    shadowJar {
+        archiveClassifier.set("")
+        relocate("org.bstats", "com.foenichs.password.libs.bstats")
+    }
+    build {
+        dependsOn(shadowJar)
     }
 }
 
