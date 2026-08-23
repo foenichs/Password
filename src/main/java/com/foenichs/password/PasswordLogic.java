@@ -19,6 +19,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.object.ObjectContents;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -63,6 +64,11 @@ public final class PasswordLogic implements Listener {
         PlayerConfigurationConnection connection = event.getConnection();
         UUID uuid = connection.getProfile().getId();
         if (uuid == null) return;
+
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null && player.hasPermission("password.bypass")) {
+            return;
+        }
 
         OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
         if (whitelistBypass && offline.isWhitelisted()) {

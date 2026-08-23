@@ -6,3 +6,7 @@ prefix: Password
 authors: [ foenichs ]
 description: Protect your server with a password.
 website: foenichs.com
+permissions:
+  password.bypass:
+    description: Players with that permission never have to enter the password.
+    default: false
