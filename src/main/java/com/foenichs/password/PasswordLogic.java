@@ -42,6 +42,8 @@ public final class PasswordLogic implements Listener {
     private boolean operatorBypass;
     private boolean whitelistBypass;
     private boolean autoWhitelist;
+    private boolean whitelistBypassExpirationEnabled;
+    private int whitelistBypassExpirationDays;
 
     public PasswordLogic(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -53,6 +55,8 @@ public final class PasswordLogic implements Listener {
         operatorBypass = plugin.getConfig().getBoolean("operator_bypass", true);
         whitelistBypass = plugin.getConfig().getBoolean("whitelist_bypass", true);
         autoWhitelist = plugin.getConfig().getBoolean("auto_whitelist", false);
+        whitelistBypassExpirationEnabled = plugin.getConfig().getBoolean("whitelist_bypass_expiration.enabled", false);
+        whitelistBypassExpirationDays = plugin.getConfig().getInt("whitelist_bypass_expiration.days", 14);
     }
 
     public void onDisable() {
@@ -71,7 +75,19 @@ public final class PasswordLogic implements Listener {
         }
 
         OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
-        if (whitelistBypass && offline.isWhitelisted()) {
+        boolean whitelistBypassValid = whitelistBypass && offline.isWhitelisted();
+
+        if (whitelistBypassValid && whitelistBypassExpirationEnabled) {
+            long lastSeen = offline.getLastSeen();
+
+            if (lastSeen > 0) {
+                long expirationMillis = TimeUnit.DAYS.toMillis(whitelistBypassExpirationDays);
+                whitelistBypassValid =
+                        (System.currentTimeMillis() - lastSeen) < expirationMillis;
+            }
+        }
+
+        if (whitelistBypassValid) {
             return;
         }
         if (operatorBypass && offline.isOp()) {

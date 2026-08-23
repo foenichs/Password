@@ -2,7 +2,14 @@ password: changeme
 
 # Weather operators have to enter the password when joining.
 operator_bypass: true
+
 # Weather whitelisted players have to enter the password when joining.
 whitelist_bypass: false
+
+# Whitelisted players inactive for the specified number of days have to re-enter the password.
+whitelist_bypass_expiration:
+  enabled: false
+  days: 14
+
 # Whether players should be whitelisted when entering the password.
 auto_whitelist: false
