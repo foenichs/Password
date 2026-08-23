@@ -4,3 +4,5 @@ password: changeme
 operator_bypass: true
 # Weather whitelisted players have to enter the password when joining.
 whitelist_bypass: false
+# Whether players should be whitelisted when entering the password.
+auto_whitelist: false

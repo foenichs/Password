@@ -40,6 +40,7 @@ public final class PasswordLogic implements Listener {
     private String serverPassword;
     private boolean operatorBypass;
     private boolean whitelistBypass;
+    private boolean autoWhitelist;
 
     public PasswordLogic(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -50,6 +51,7 @@ public final class PasswordLogic implements Listener {
         serverPassword = plugin.getConfig().getString("password", "");
         operatorBypass = plugin.getConfig().getBoolean("operator_bypass", true);
         whitelistBypass = plugin.getConfig().getBoolean("whitelist_bypass", true);
+        autoWhitelist = plugin.getConfig().getBoolean("auto_whitelist", false);
     }
 
     public void onDisable() {
@@ -148,6 +150,13 @@ public final class PasswordLogic implements Listener {
         if (entered == null) entered = "";
 
         boolean correct = serverPassword.equals(entered);
+
+        if (correct && autoWhitelist) {
+            OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
+            if (!offline.isWhitelisted()) {
+                offline.setWhitelisted(true);
+            }
+        }
 
         CompletableFuture<Boolean> f = awaiting.get(uuid);
         if (f != null) f.complete(correct);
