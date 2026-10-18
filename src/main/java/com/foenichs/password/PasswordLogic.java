@@ -1,9 +1,13 @@
 package com.foenichs.password;
 
 import com.destroystokyo.paper.event.player.PlayerConnectionCloseEvent;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import io.papermc.paper.ban.BanListType;
 import io.papermc.paper.connection.PlayerConfigurationConnection;
+import io.papermc.paper.connection.PlayerLoginConnection;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
+import io.papermc.paper.event.connection.PlayerConnectionValidateLoginEvent;
 import io.papermc.paper.event.connection.configuration.AsyncPlayerConnectionConfigureEvent;
 import io.papermc.paper.event.player.PlayerCustomClickEvent;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -25,6 +29,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -61,6 +66,23 @@ public final class PasswordLogic implements Listener {
 
     public void onDisable() {
         awaiting.clear();
+    }
+
+    @EventHandler
+    public void onValidateLogin(PlayerConnectionValidateLoginEvent event) {
+        if (!autoWhitelist || event.isAllowed() || !Bukkit.hasWhitelist()) return;
+        if (!(event.getConnection() instanceof PlayerLoginConnection login)) return;
+
+        PlayerProfile profile = login.getAuthenticatedProfile();
+        assert profile != null;
+        UUID uuid = profile.getId();
+        if (uuid == null || Bukkit.getOfflinePlayer(uuid).isWhitelisted()) return;
+
+        if (Bukkit.getBanList(BanListType.PROFILE).isBanned(profile)) return;
+        InetSocketAddress address = login.getClientAddress();
+        if (Bukkit.getBanList(BanListType.IP).isBanned(address.getAddress())) return;
+
+        event.allow();
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

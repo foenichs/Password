@@ -11,5 +11,5 @@ whitelist_bypass_expiration:
   enabled: false
   days: 14
 
-# Whether players should be whitelisted when entering the password.
+# Weather players should be whitelisted trough entering the password.
 auto_whitelist: false
