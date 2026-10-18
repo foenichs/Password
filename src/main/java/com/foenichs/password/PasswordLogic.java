@@ -27,11 +27,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +44,7 @@ public final class PasswordLogic implements Listener {
 
     private final JavaPlugin plugin;
     private final Map<UUID, CompletableFuture<Boolean>> awaiting = new ConcurrentHashMap<>();
+    private final Set<UUID> pendingWhitelist = ConcurrentHashMap.newKeySet();
     private static final Key CLICK_KEY = Key.key("password:check");
     private String serverPassword;
     private boolean operatorBypass;
@@ -66,6 +69,7 @@ public final class PasswordLogic implements Listener {
 
     public void onDisable() {
         awaiting.clear();
+        pendingWhitelist.clear();
     }
 
     @EventHandler
@@ -196,16 +200,23 @@ public final class PasswordLogic implements Listener {
         boolean correct = serverPassword.equals(entered);
 
         if (correct && autoWhitelist) {
-            Bukkit.getGlobalRegionScheduler().run(plugin, task -> {
-                OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
-            if (!offline.isWhitelisted()) {
-                offline.setWhitelisted(true);
-            }
-            });
+            pendingWhitelist.add(uuid);
         }
 
         CompletableFuture<Boolean> f = awaiting.get(uuid);
         if (f != null) f.complete(correct);
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (!pendingWhitelist.remove(player.getUniqueId())) return;
+
+        Bukkit.getGlobalRegionScheduler().run(plugin, task -> {
+            if (!player.isWhitelisted()) {
+                player.setWhitelisted(true);
+            }
+        });
     }
 
     @EventHandler
